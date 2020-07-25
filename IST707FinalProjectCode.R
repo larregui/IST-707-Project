@@ -77,4 +77,18 @@ barplot(c, main = "Heart Attack Risk VS THAL", beside = TRUE, col= brewer.pal(4,
 d<- table(heart$cp,heart$target)
 d
 barplot(d, main = "Heart Attack Risk VS CP", beside = TRUE, col= brewer.pal(4, "Spectral"),legend.text = rownames((d)),args.legend=list(x="topright",bty="s"))
-#
+
+################################
+#Association Rule Mining
+head(heart)#test
+newheart<- heart[,-4:-5]
+newheart<- newheart[,-6]
+newheart<- newheart[,-7]
+head(newheart)#test
+suppVar <- 0.01
+confVar <- 0.9
+maxlenVar <- 3
+rulesHeartRight <- apriori(newheart, parameter = list(supp = suppVar, conf = confVar, maxlen = maxlenVar), 
+                         appearance = list (default = "lhs", rhs= "target=high risk" ),control=list(verbose=F))
+options(digits=2)
+inspect(rulesHeartRight)
