@@ -49,7 +49,8 @@ heart$thal=dplyr::recode(heart$thal, "0"="Normal", "1"="Fixed Defect", "2"="Reve
 heart$thal=dplyr::recode(heart$thal,"3"="Unreversable Defect") #I'm assuming this is the value behind 3
 heart$cp=dplyr::recode(heart$cp, "0"="None", "1"="Low", "2"="Medium","3"="High")
 #head(heart$cp)
-
+heart$target=dplyr::recode(heart$target, "0"="low risk", "1"="high risk")
+#head(heart$target)
 #Discretize Age
 ## -- Testing first
 heart$ï..age <- cut(heart$ï..age, breaks = c(0,20,30,40,50,60,70,80),
@@ -61,3 +62,19 @@ head(heart$ï..age)
 #I would like to change the name of heart$ï..age to heart$age
 #names(heart)
 names(heart)[names(heart) == "ï..age"] <- "age"
+
+# Observing the Distributions
+#par(mfrow = c(2,2))#only used this if you want all graphs in the same window
+a<- table(heart$age,heart$target)
+a
+barplot(a, main = "Heart Attack Risk across All Ages", beside = TRUE, col= brewer.pal(7, "Spectral"),legend.text = rownames((a)),args.legend=list(x="topright",bty="s"))
+b<- table(heart$sex,heart$target)
+b
+barplot(b, main = "Heart Attack Risk VS Gender", beside = TRUE, col= c("purple", "lightblue2"),legend.text = rownames((b)),args.legend=list(x="topright",bty="s"))
+c<- table(heart$thal,heart$target)
+c
+barplot(c, main = "Heart Attack Risk VS THAL", beside = TRUE, col= brewer.pal(4, "Spectral"),legend.text = rownames((c)),args.legend=list(x="topright",bty="s"))
+d<- table(heart$cp,heart$target)
+d
+barplot(d, main = "Heart Attack Risk VS CP", beside = TRUE, col= brewer.pal(4, "Spectral"),legend.text = rownames((d)),args.legend=list(x="topright",bty="s"))
+#
