@@ -1,0 +1,152 @@
+##The "target" field refers to the presence of heart disease in 
+##the patient. It is integer valued 0 = no/less chance of heart 
+##attack and 1 = more chance of heart attack. Attribute Information:
+##1) age, 2) sex (0=F, 1=M), 3) chest pain type (4 values), 4) resting blood 
+##pressure, 5) serum cholestoral in mg/dl, 6)fasting blood sugar > 
+##120 mg/dl, 7) resting electrocardiographic results (values 0,1,2),
+##8) maximum heart rate achieved, 9) exercise induced angina,
+##10) oldpeak = ST depression induced by exercise relative to rest,
+##11)the slope of the peak exercise ST segment, 12) number of major 
+##vessels (0-3) colored by flourosopy, 13) thal: 0 = normal; 
+##1 = fixed defect; 2 = reversable defect, 14) target: 0= less chance 
+##of heart attack 1= more chance of heart attack
+
+##Load packages
+library(tidyverse)
+library(haven)
+library(sqldf)
+library(ggplot2)
+library(dplyr)
+library(arules)
+library(caret)
+library(reshape2)
+library(Amelia)
+library(grid)
+library(gridExtra)
+library(randomForest)
+library(e1071)
+library(plyr)
+library(arulesViz)
+library(RColorBrewer)
+
+##Read in data
+heart<- read.csv("C:/Users/pr1nc/Desktop/Syracuse Data Science/Term 3 July-Sept 2020/IST 707/Project/heart data.csv")
+str(heart)
+
+##Rename age column
+names(heart)[names(heart) == "ï..age"] <- "age"
+
+#convert all variables to numeric
+heart$age<-as.numeric(heart$age)
+heart$sex<-as.numeric(heart$sex)
+heart$cp<-as.numeric(heart$cp)
+heart$trestbps<-as.numeric(heart$trestbps)
+heart$chol<-as.numeric(heart$chol)
+heart$fbs<-as.numeric(heart$fbs)
+heart$restecg<-as.numeric(heart$restecg)
+heart$thalach<-as.numeric(heart$thalach)
+heart$exang<-as.numeric(heart$exang)
+heart$oldpeak<-as.numeric(heart$oldpeak)
+heart$slope<-as.numeric(heart$slope)
+heart$ca<-as.numeric(heart$ca)
+heart$thal<-as.numeric(heart$thal)
+heart$target<-as.numeric(heart$target)
+str(heart)
+
+##Summary of data
+summary(heart)
+
+##Histograms
+dev.off()
+lapply(heart[1:14], FUN=hist)
+list <-lapply(1:ncol(heart),
+              function(col) ggplot2::qplot(heart[[col]],
+                                           geom = "histogram",
+                                           binwidth = 1))
+cowplot::plot_grid(plotlist = list)
+
+##Age plots
+a=heart%>%ggplot(aes(x=age))+geom_histogram(aes(y=..density..), colour="black", fill="white")+
+  geom_density(alpha=.2, fill="#FF6666")+theme(axis.text = element_text(size =25 ),
+                                               axis.title = element_text(size =26 ))
+a
+
+b=heart%>%ggplot(aes(x=age))+geom_boxplot(fill='#A4A4A4', color="black",outlier.size = 5)+
+  theme(axis.text = element_text(size =25 ),axis.title = element_text(size =26 ))  
+b
+
+#BP plots
+c=heart%>%ggplot(aes(x=trestbps))+geom_histogram(aes(y=..density..), colour="black", fill="white")+
+  geom_density(alpha=.2, fill="#FF6666")+theme(axis.text = element_text(size =25 ),
+                                               axis.title = element_text(size =26 ))
+c
+
+d=heart%>%ggplot(aes(x=trestbps))+geom_boxplot(fill='#A4A4A4', color="black",outlier.size = 5)+
+  theme(axis.text = element_text(size =25 ),axis.title = element_text(size =26 )) 
+d
+
+#Cholesterol plots
+e=heart%>%ggplot(aes(x=chol))+geom_histogram(aes(y=..density..), colour="black", fill="white")+
+  geom_density(alpha=.2, fill="#FF6666")+theme(axis.text = element_text(size =25 ),
+                                               axis.title = element_text(size =26 ))
+e
+
+f=heart%>%ggplot(aes(x=chol))+geom_boxplot(fill='#A4A4A4', color="black",outlier.size = 5)+
+  theme(axis.text = element_text(size =25 ),axis.title = element_text(size =26 )) 
+f
+
+#Plots for exercise-induced ST depression
+g=heart%>%ggplot(aes(x=oldpeak))+geom_histogram(aes(y=..density..), colour="black", fill="white")+
+  geom_density(alpha=.2, fill="#FF6666")+theme(axis.text = element_text(size =25 ),
+                                               axis.title = element_text(size =26 )) 
+g
+
+h=heart%>%ggplot(aes(x=oldpeak))+geom_boxplot(fill='#A4A4A4', color="black",outlier.size = 5)+
+  theme(axis.text = element_text(size =25 ),axis.title = element_text(size =26 )) 
+h
+
+#All plots
+ggarrange(a,b,c,d,e,f,g,h,nrow = 4,ncol = 2)
+
+#Modeling
+set.seed(1)
+splitt=sample.split(Y = heart$target,SplitRatio = .7)
+train_data=heart[splitt,]
+test_data=heart[!splitt,]
+
+#Logistic regression
+full_model=glm(as.factor(target)~.,data = train_data,family = 'binomial');full_model
+predict1=predict(full_model,newdata = test_data,type = 'response');head(predict1)
+
+tab1=table(actual=test_data$target,predicted=predict1>0.5)
+row.names(tab1)=c('0','1')
+colnames(tab1)=row.names(tab1)
+cm1=confusionMatrix(tab1,positive = '1');cm1
+
+#Correlation
+fig(15,8)
+corrplot(cor(heart),type = 'upper',
+         order = 'original',sig.level = .01,insig = 'blank',tl.cex = 1.7)
+
+
+corrplot(cor(heart),type = 'upper',method = 'color',addCoef.col = 'black',
+         order = 'original',sig.level = .01,insig = 'blank',tl.cex = 1.7)
+
+#Random forest
+set.seed(5)
+rf=train(as.factor(target)~.,data = train_data, method = "rf",
+         trControl = trainControl(method = 'cv',number = 10),importance=T)
+rf$bestTune
+rf$finalModel
+
+rf_predict=predict(rf,test_data);head(rf_predict)
+tab3=table(actual=test_data$target,predicted=rf_predict)
+cm3=confusionMatrix(tab3);cm3
+
+#Importance of variables
+importance(rf$finalModel)
+
+fig(10,5)
+varImpPlot(rf$finalModel,type = 1)
+varImpPlot(rf$finalModel,type = 2)
+fi=varImp(rf);fi
