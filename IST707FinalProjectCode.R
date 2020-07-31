@@ -79,6 +79,19 @@ d
 barplot(d, main = "Heart Attack Risk VS CP", beside = TRUE, col= brewer.pal(4, "Spectral"),legend.text = rownames((d)),args.legend=list(x="topright",bty="s"))
 
 ################################
+#Correlation
+library(corrplot)
+fname<- file.choose()#browse for the file
+heart1<- read.csv(fname, header = TRUE)
+heart_cor <- cor(heart1) 
+round(heart_cor, 2) 
+corrplot(heart_cor, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+#Positive correlations are displayed in blue and negative correlations in red color. Color intensity and the size of the circle are proportional to the correlation coefficients.
+
+#Correlation matrix with numbers 
+corrplot(heart_cor, method = 'number', type = "upper", order = "hclust",tl.col = "black", tl.srt = 45)
+
+################################
 #Association Rule Mining
 head(heart)#test
 newheart<- heart[,-4:-5]
