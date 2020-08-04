@@ -130,4 +130,16 @@ w.rpart
 rpart.plot(w.rpart, digits = 3)
 fancyRpartPlot (w.rpart)
 
-
+###########################################
+# Confusion Matrix for the desicion tree model
+library(caret)
+pred<-predict(w.rpart, heart_test, type="class")
+confusionMatrix(heart_test$target, pred)
+#precision when low risk
+38/(38+5)# equals 88%
+#precision when high risk
+48/(10+48) # equals 83%
+#recall when low risk
+38/(38+10)# equals 79%
+#recall when high risk
+48/(5+48) # equals 91%
