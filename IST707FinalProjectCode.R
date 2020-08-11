@@ -8,6 +8,8 @@
 #Import Libraries
 library(plyr)
 library(dplyr)
+library(grid)
+detach(package:tm, unload=TRUE)
 library(arules) #for ARM
 library(arulesViz) #for ARM
 library(RColorBrewer)#contains color palettes
@@ -92,6 +94,14 @@ corrplot(heart_cor, type = "upper", order = "hclust", tl.col = "black", tl.srt =
 corrplot(heart_cor, method = 'number', type = "upper", order = "hclust",tl.col = "black", tl.srt = 45)
 
 ################################
+#Tree Maps
+library(treemap)
+str(heart)
+treemap(heart, index = c("age"), vSize = "chol")
+treemap(heart, index = c("age"), vSize = "trestbps")
+treemap(heart, index = c("age"), vSize = "oldpeak")
+treemap(heart, index = c("age"), vSize = "thalach")
+################################
 #Association Rule Mining
 head(heart)#test
 newheart<- heart[,-4:-5]
@@ -105,6 +115,17 @@ rulesHeartRight <- apriori(newheart, parameter = list(supp = suppVar, conf = con
                          appearance = list (default = "lhs", rhs= "target=high risk" ),control=list(verbose=F))
 options(digits=2)
 inspect(rulesHeartRight)
+plot(rulesHeartRight, method="graph", interactive=TRUE)
+
+# Sort by LIFT
+rulesRightByLift <- head(sort(rulesHeartRight, by="lift"), 100)  
+inspect(rulesRightByLift)
+# Sort by Support
+rulesRightBySupp <- head(sort(rulesHeartRight, by="supp"), 20)  
+inspect(rulesRightBySupp)
+# Sort by Confidence
+rulesRightBySupp <- head(sort(rulesHeartRight, by="conf"), 20)  
+inspect(rulesRightBySupp)
 
 ################################
 #Recursive Partitioning and Regression Trees 
@@ -143,3 +164,65 @@ confusionMatrix(heart_test$target, pred)
 38/(38+10)# equals 79%
 #recall when high risk
 48/(5+48) # equals 91%
+
+########################################
+#New decision trees
+
+train_treeh<- rpart(target ~., data=heart_train, method="class", control=rpart.control(cp=0))
+summary(train_treeh)
+predictedh=predict(train_treeh, heart_test, type="class")
+rsq.rpart(train_treeh)
+
+plotcp(train_treeh)
+fancyRpartPlot(train_treeh)
+table(HeartDP=predictedh, true=heart_test$target)
+#           true
+#HeartDP     low risk high risk
+#low risk        38         5
+#high risk       10        48
+
+########################################
+#Clustering 
+
+##k-means
+library(ggvis)
+wss <- kmeans(heart1, centers = 1)$tot.withinss
+
+for (i in 3:72){
+  
+  wss[i] <- kmeans(heart1, centers = i)$tot.withinss
+  
+}
+
+sse <- data.frame(c(1:72), c(wss))
+
+colnames(sse) <- c('Clusters', 'SSE')
+
+sse %>% ggvis(~Clusters, ~SSE) %>% layer_points(fill := 'blue') %>% layer_lines()
+
+kclust<- kmeans(heart1, centers = 5, nstart = 10)
+fviz_cluster(kclust, data=heart1)
+# 
+
+##k-means: distance
+dist1<-get_dist(hear1t, method = "manhattan")
+fviz_dist(dist1, gradient=list(low="#00AFBB", mid= "white", high="#FC4E07"))
+
+dist2<-get_dist(heart1, method = "euclidean")
+fviz_dist(dist2, gradient=list(low="#00AFBB", mid= "white", high="#FC4E07"))
+
+##HAC
+clusComp <- hclust(dist(heart1), method = 'complete')
+
+clusAvg <- hclust(dist(heart1), method = 'average')
+
+
+# We can see that both groups use Euclidean distance and present 85 observations, but the cluster method varies. 
+
+clusComp
+
+clusAvg
+
+plot(clusComp, hang = -1, cex = 0.6, main = "Heart Cluster - Complete")
+plot(clusAvg, hang = -1, cex = 0.6, main = "Heart Cluster - Average")
+
