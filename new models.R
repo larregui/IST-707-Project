@@ -33,6 +33,9 @@ yhat.naiveBayes <- predict(naiveBayes.model, heart_test, type = "prob")
 
 naiveBayes_data <- prob.prediction(yhat.model = yhat.naiveBayes)
 
+cfm1 <- confusionMatrix(yhat.naiveBayes, heart_test$target)
+cfm1
+
 # rForest
 
 rforest.model <- train(target ~ .,
@@ -50,6 +53,9 @@ feature_importance2 <- varImp(rforest.model, scale = FALSE)
 plot(feature_importance2)
 
 yhat.rforest <- predict(rforest.model, heat_test, type = "prob")
+
+cfm2 <- confusionMatrix(yhat.rforest, heart_test$target)
+cfm2
 
 rforest_data <- prob.prediction(yhat.model = yhat.rforest)
 
@@ -70,6 +76,9 @@ feature_importance3 <- varImp(knn.model, scale = FALSE)
 plot(feature_importance3)
 
 yhat.knn <- predict(knn.model, newdata = heart_test, type = "prob")
+                       
+cfm3 <- confusionMatrix(yhat.knn, heart_test$target)
+cfm3
 
 knn_data <- prob.prediction(yhat.model = yhat.knn)
 
@@ -91,6 +100,9 @@ plot(feature_importance4)
 
 yhat.svm <- predict(svm.model, heart_test, type = "prob")
 
+cfm4 <- confusionMatrix(yhat.svm, heart_test$target)
+cfm4
+                       
 svm_data <- prob.prediction(yhat.model = yhat.svm)
 
 
