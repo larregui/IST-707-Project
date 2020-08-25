@@ -1,3 +1,19 @@
+
+#fit1 <- rpart(heart~target + other variables, data=heart_train, method="class")
+plot(fit1)
+text(fit1)
+rpart.plot(fit1, roundint = FALSE , digits = 4)
+
+#fit2 <- rpart(heart~target + other variables, data=heart_train, method="class")
+plot(fit2)
+text(fit2)
+rpart.plot(fit2, roundint = FALSE , digits = 4)
+
+#fit3 <- rpart(heart~target + other variables, data=heart_train, method="class")
+plot(fit3)
+text(fit3)
+rpart.plot(fit3, roundint = FALSE , digits = 4)
+
 # NaiveBayes
 
 naiveBayes.model <- train(target ~ .,
