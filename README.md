@@ -5,3 +5,18 @@
 ####    Laura Larregui
 ####    Jacqueline Parks
 ####    Courtney Rowland
+### Files
+#### Code
+IST707FinalProjectCode.R
+#### Presentations
+Final Presentation.pptx  
+Predicting Heart Disease.pptx  
+####  Dataset
+heart.csv
+#### Reports
+IST707_ProjectProposal.docx  
+Final Report.docx  
+#### Project Guidelines
+Course Project Instructions.docx  
+ABOUT THE PROJECT AND FINAL PRESENTATION.docx
+
