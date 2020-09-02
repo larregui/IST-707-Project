@@ -56,9 +56,10 @@ heart$sex=dplyr::recode(heart$sex, "0"="Female", "1"="Male")
 heart<-heart[!(heart$thal=="0"),]
 heart$thal=dplyr::recode(heart$thal, "1"="Normal", "2"="Fixed Defect", "3"="Reversable Defect")
 heart$cp=dplyr::recode(heart$cp, "0"="Typical Angina", "1"="Atypical Angina", "2"="Non-anginal pain","3"="Asymptomatic")
-heart$target=dplyr::recode(heart$target, "0"="low risk", "1"="high risk")
+heart$target=dplyr::recode(heart$target, "0"="high risk", "1"="low risk")
 heart$fbs=dplyr::recode(heart$fbs, "0"="less than 120 mg/dl", "1"="more than 120 mg/dl")
-heart$ca=dplyr::recode(heart$cs, "0"="0 major vessels", "1"="1 major vessel", "2"="2 major vessels","3"="3 major vessels")
+heart$ca=dplyr::recode(heart$ca, "0"="0 major vessels", "1"="1 major vessel", "2"="2 major vessels","3"="3 major vessels")
+heart$ca=dplyr::recode(heart$ca, "4"="4 major vessels")
 
 
 #head(heart$target)
@@ -70,11 +71,14 @@ heart$ï..age <- cut(heart$ï..age, breaks = c(0,20,30,40,50,60,70,80,90),
 # discreticize trestbps 
 heart$trestbps <- cut(heart$trestbps, breaks = c(0,120,140,160,180,200),
                     labels=c("optimal","prehypertension","high blood pressure stage 1","high blood pressure stage 2","hypertension crisis"))
+# discreticize chol 
+heart$chol <- cut(heart$chol, breaks = c(0,200,240,600),
+                      labels=c("Healthy Chol","Boderline High Risk","High Risk"))
 
 
 #I would like to change the name of heart$ï..age to heart$age
 names(heart)[names(heart) == "ï..age"] <- "age"
-#par(mfrow = c(2,1))
+par(mfrow = c(2,1))
 aa<- table(heart$age)
 barplot(aa, col="red", main = "Age Frequency")
 bb<- table(heart$trestbps)
@@ -103,14 +107,18 @@ e<- table(heart$ca,heart$target)
 e
 barplot(e, main = "Heart Attack Risk VS CA", beside = TRUE, col= brewer.pal(5, "Spectral"),legend.text = rownames((e)),args.legend=list(x="topright",bty="s"))
 
+cp<- table(heart$cp,heart$target)
+cp
+barplot(cp, main = "Heart Attack Risk VS CP", beside = TRUE, col= brewer.pal(4, "Spectral"),legend.text = rownames((cp)),args.legend=list(x="topright",bty="s"))
+
 #
 par(mfrow = c(1,1))
 f<- table(heart$target)
 f
 piepercent<- round(100*f/sum(f), 1)
-pie(f, labels = piepercent, main = "Heart Disease Risk",col = c("white","red"))
+pie(f, labels = piepercent, main = "Heart Disease Risk",col = c("white","darkred"))
 legend("topright", c("low risk","high risk"), cex = 0.8,
-       fill = c("white","red"))
+       fill = c("white","darkred"))
 g<-tapply(heart$sex, list(heart$target, heart$sex, heart$age), length)
 
 ################################
@@ -126,9 +134,6 @@ list <-lapply(1:ncol(heart1),
                                            geom = "histogram",
                                            binwidth = 1))
 cowplot::plot_grid(plotlist = list)
-
-##Rename age column
-names(heart1)[names(heart1) == "ï..age"] <- "age"
 
 
 ##Age plots
@@ -195,6 +200,7 @@ corrplot(heart_cor, type = "upper", order = "hclust", tl.col = "black", tl.srt =
 #Positive correlations are displayed in blue and negative correlations in red color. Color intensity and the size of the circle are proportional to the correlation coefficients.
 
 #Correlation matrix with numbers 
+par(mfrow = c(1,1))
 corrplot(heart_cor, method = 'number', type = "upper", order = "hclust",tl.col = "black", tl.srt = 45)
 
 ################################
@@ -210,7 +216,6 @@ treemap(heart, index = c("target"), vSize = "thalach")
 head(heart)#test
 newheart<- heart[,-10]
 newheart<- newheart[,-8]
-newheart<- newheart[,-5]
 head(newheart)#test
 suppVar <- 0.01
 confVar <- 0.9
@@ -260,14 +265,6 @@ fancyRpartPlot (w.rpart)
 library(caret)
 pred<-predict(w.rpart, heart_test, type="class")
 confusionMatrix(heart_test$target, pred)
-#precision when low risk
-38/(38+5)# equals 88%
-#precision when high risk
-48/(10+48) # equals 83%
-#recall when low risk
-38/(38+10)# equals 79%
-#recall when high risk
-48/(5+48) # equals 91%
 
 ########################################
 #New decision trees
@@ -291,11 +288,6 @@ library(tree)
 tree_model <- tree(target ~ ., heart_train)
 plot(tree_model)
 text(tree_model, pretty = 0)
-
-
-plotcp(train_treeh)
-fancyRpartPlot(train_treeh)
-table(HeartDP=predictedh, true=heart_test$target)
 
 p2 <- predict(tree_model, heart_test, type = 'class')
 
@@ -349,23 +341,28 @@ p2 <- predict(pruned_model, heart_test, type = 'class')
 (sum(diag(tab2))/sum(tab2)) * 100
 #######################################
 # More trees
-fit1 <- rpart(target ~.,  data=heart_train, method="class")
+fit1 <- rpart(target ~ thalach + slope + exang+ oldpeak + ca + cp,  data=heart_train, method="class")
 
 plot(fit1)
 
 text(fit1)
 
 rpart.plot(fit1, roundint = FALSE , digits = 4)
+pred<-predict(fit1, heart_test, type="class")
+confusionMatrix(heart_test$target, pred)
 
 
-
-fit2 <- rpart(target~age + sex +chol , data=heart_train, method="class")
+par(mfrow=c(1,1))
+fit2 <- rpart(target~age + sex +chol+trestbps+cp , data=heart_train, method="class")
 
 plot(fit2)
 
 text(fit2)
 
 rpart.plot(fit2, roundint = FALSE , digits = 4)
+
+pred<-predict(fit2, heart_test, type="class")
+confusionMatrix(heart_test$target, pred)
 
 #######################################
 #Naive Bayes
@@ -398,6 +395,7 @@ nbTrain <- naiveBayes(as.factor(target) ~ ., data = heart_train)
 # Again, test the results on the train set  
 nbTrainPred <- predict(nbTrain, heart_test, type = 'class')
 confusionMatrix(nbTrainPred, as.factor(heart_test$target))
-
-
-
+par(mfrow = c(1,2))
+plot(nbTrainPred, ylab = "Density", main = "NaiveBayes Plot", col="darkred", ylim = c(0,70))
+actual<- table(heart_test$target)
+barplot(actual, col = "darkred", ylab = "Density", main = "Test Dataset Plot", ylim = c(0,70))
