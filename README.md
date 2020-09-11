@@ -7,7 +7,8 @@
 ####    Courtney Rowland
 ### Files
 #### Code
-IST707FinalProjectCode.R
+IST707FinalProjectCode.R // ARM, Decision Trees, Naive Bayes 
+CourtneyCode //Random Forest, SVM
 #### Presentations
 Final Presentation.pptx  
 Predicting Heart Disease.pptx  
