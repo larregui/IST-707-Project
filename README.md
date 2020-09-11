@@ -16,7 +16,7 @@ Predicting Heart Disease.pptx
 heart.csv
 #### Reports
 IST707_ProjectProposal.docx  
-Final Report.docx  
+IST707_Final Report.docx  <- official report  
 #### Project Guidelines
 Course Project Instructions.docx  
 ABOUT THE PROJECT AND FINAL PRESENTATION.docx
